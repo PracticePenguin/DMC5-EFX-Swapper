@@ -19,12 +19,15 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\InternalCompute\FileDefs.h" />
+    <ClInclude Include="src\InternalCompute\FileManager.h" />
     <ClInclude Include="src\EFX_Editor.h" />
     <ClInclude Include="src\gui\MainFrame.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\EFX_Editor.cpp" />
     <ClCompile Include="src\gui\MainFrame.cpp" />
+    <ClCompile Include="src\InternalCompute\FileManager.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
