@@ -21,5 +21,6 @@ public:
 	std::string getSName(uint32_t id);
 	std::unordered_map<uint32_t, Effect>& getEffects();
 	std::vector<unsigned char>& getBefEfxData();
+	void saveFile();
 };
 

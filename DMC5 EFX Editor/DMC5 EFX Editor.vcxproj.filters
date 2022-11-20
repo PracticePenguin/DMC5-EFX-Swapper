@@ -18,7 +18,7 @@
     <ClInclude Include="src\gui\MainFrame.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\EFX_Editor.h">
+    <ClInclude Include="src\EFX_Swapper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\InternalCompute\FileManager.h">
@@ -35,7 +35,7 @@
     <ClCompile Include="src\gui\MainFrame.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\EFX_Editor.cpp">
+    <ClCompile Include="src\EFX_Swapper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\InternalCompute\FileManager.cpp">

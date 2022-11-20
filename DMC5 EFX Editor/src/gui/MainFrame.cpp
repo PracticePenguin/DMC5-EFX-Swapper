@@ -85,6 +85,7 @@ void MainFrame::createRPanelItems() {
 	wxButton* save = new wxButton(rightpanel, wxID_ANY, "Save File");
 	//button bindings
 	remove->Bind(wxEVT_BUTTON, &MainFrame::onRemoveClicked, this);
+	save->Bind(wxEVT_BUTTON, &MainFrame::onSaveClicked, this);
 	//set sizer
 	wxBoxSizer* rsizer = new wxBoxSizer(wxVERTICAL);
 	rsizer->Add(rtitle, 1, wxEXPAND | wxLEFT, 5);
@@ -191,7 +192,12 @@ void MainFrame::onRemoveClicked(wxCommandEvent& evt) {
 }
 
 void MainFrame::onSaveClicked(wxCommandEvent& evt) {
-
+	//write target into file 
+	if (!targetFileManager) {
+		wxLogError("Please open a Target File");
+		return;
+	}
+	targetFileManager->saveFile();
 }
 
 void MainFrame::insertEfxList(const Effect& effect, wxListView* listview, uint32_t data, uint32_t index) {

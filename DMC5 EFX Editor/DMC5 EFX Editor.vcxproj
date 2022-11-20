@@ -22,11 +22,11 @@
     <ClInclude Include="src\InternalCompute\efxbullshit.hpp" />
     <ClInclude Include="src\InternalCompute\FileDefs.h" />
     <ClInclude Include="src\InternalCompute\FileManager.h" />
-    <ClInclude Include="src\EFX_Editor.h" />
+    <ClInclude Include="src\EFX_Swapper.h" />
     <ClInclude Include="src\gui\MainFrame.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\EFX_Editor.cpp" />
+    <ClCompile Include="src\EFX_Swapper.cpp" />
     <ClCompile Include="src\gui\MainFrame.cpp" />
     <ClCompile Include="src\InternalCompute\FileManager.cpp" />
   </ItemGroup>
@@ -36,6 +36,7 @@
     <ProjectGuid>{5235eda9-49d0-4453-a8ff-065068292a4f}</ProjectGuid>
     <RootNamespace>DMC5EFXEditor</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>DMC5 EFX Swapper</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
