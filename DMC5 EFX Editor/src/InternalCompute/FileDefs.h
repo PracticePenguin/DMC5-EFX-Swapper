@@ -147,11 +147,14 @@ struct Segment {
 	uint32_t id;
 	std::string segName;
 	uint32_t size;
+	std::vector<unsigned char> segData;
 };
 
 struct Effect {
 	uint32_t id;
 	std::string name;
+	uint32_t size;
+	unsigned char dataBefSeg[16] = {};
 	std::unordered_map<uint32_t, Segment> segments;
 };
 

@@ -27,6 +27,9 @@
     <ClInclude Include="src\InternalCompute\FileDefs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\InternalCompute\efxbullshit.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\gui\MainFrame.cpp">

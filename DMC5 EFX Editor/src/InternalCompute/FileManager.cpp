@@ -1,4 +1,6 @@
+#pragma once
 #include "FileManager.h"
+#include "efxbullshit.hpp"
 
 //constructor
 FileManager::FileManager(std::string path) {
@@ -16,6 +18,7 @@ EFX_Header& FileManager::getHeader() {
 bool FileManager::openAndReadFile() {
 	std::ifstream filestream(path, std::ifstream::binary);
 	if (filestream) {
+		auto fileStartAddr = filestream.tellg();
 		//read header
 		filestream.read(header.magic, 4);
 		char ukn[5] = {};
@@ -37,7 +40,7 @@ bool FileManager::openAndReadFile() {
 			uint32_t pathsize{0};
 			filestream.read((char*)&pathsize, 4);
 			//skip to end if linked efx
-			filestream.seekg(filestream.tellg() + std::streampos(pathsize));
+			filestream.seekg(filestream.tellg() + std::streampos(pathsize * 2));
 		}
 		//move beyond msk4
 		for (int i = 0; i < header.msk4Count; i++) {
@@ -49,15 +52,33 @@ bool FileManager::openAndReadFile() {
 			filestream.seekg(filestream.tellg() + std::streampos(pathsize * 2));
 		}
 		//effects section
+		std::streampos effectsStartAddr = filestream.tellg();
+		//read before data
+		filestream.seekg(fileStartAddr);
+		while (filestream.tellg() != effectsStartAddr) {
+			unsigned char tmpdata{ 0 };
+			filestream.read((char*)&tmpdata, 1);
+			befEfxData.emplace_back(tmpdata);
+		}
 		for (int32_t i = 0; i < header.effectCount; i++) {
 			//init
 			Effect effect;
-			effect.name = "Effect" + std::to_string(i);
 			effect.id = i;
+			//read start data
+			std::streampos effstart = filestream.tellg();
+			filestream.read((char*)effect.dataBefSeg, 16);
+			filestream.seekg(effstart);
 			//read info from file
 			uint32_t segCount{ 0 };
-			filestream.seekg(filestream.tellg() + std::streampos(12));
+			filestream.seekg(filestream.tellg() + std::streampos(4));
+			uint32_t namehash{ 0 };
+			filestream.read((char*)&namehash, 4);
+			std::wstring ws{eff_name_utf8_hash_decode(namehash)};
+			effect.name = std::string{ws.begin(),ws.end()};
+			filestream.seekg(effstart + std::streampos(12));
 			filestream.read((char*)&segCount, 4);
+			//segments overall size
+			uint32_t fullSize{ 0 };
 			for (int32_t j = 0; j < segCount; j++) {
 				std::streampos segstart = filestream.tellg();
 				uint32_t itemType{ 0 };
@@ -73,12 +94,27 @@ bool FileManager::openAndReadFile() {
 				segment.id = j;
 				segment.segName = getSName(itemType);
 				segment.size = segSize;
+				fullSize += segSize;
+				//insert data
+				filestream.seekg(segstart);
+				for (int c = 0; c < segSize; c++) {
+					unsigned char tmpc{ 0 };
+					filestream.read((char*)&tmpc, 1);
+					segment.segData.emplace_back(tmpc);
+				}	
 				//insert into map
 				effect.segments.insert(std::make_pair(j,segment));
 				//move fileptr to start of next seg
 				filestream.seekg(segstart + std::streampos(segSize));
 			}
+			effect.size = fullSize + 16;
 			effects.emplace(std::make_pair(i, effect));
+		}
+		//read remaining data
+		while (filestream.peek() && !filestream.eof()) {
+			unsigned char tmpdata{ 0 };
+			filestream.read((char*)&tmpdata, 1);
+			aftEfxData.emplace_back(tmpdata);
 		}
 	}
 	return true;
@@ -86,6 +122,10 @@ bool FileManager::openAndReadFile() {
 
 std::unordered_map<uint32_t, Effect>& FileManager::getEffects() {
 	return effects;
+}
+
+std::vector<unsigned char>& FileManager::getBefEfxData() {
+	return befEfxData;
 }
 
 
@@ -183,7 +223,7 @@ uint32_t FileManager::getSegmentSize(uint32_t id, std::streampos segstart, std::
 		filestream.read((char*)&meshPSize, 4);
 		filestream.read((char*)&mdfPSize, 4);
 		filestream.read((char*)&texPSize, 4);
-		return 4 + 136 + (meshPSize * 2) + (mdfPSize * 2) + (texPSize * 2);
+		return 4 + 136 + (hashCount * 28) + (meshPSize * 2) + (mdfPSize * 2) + (texPSize * 2);
 		break;
 	}
 	case ItemType_TypeMeshClip: 

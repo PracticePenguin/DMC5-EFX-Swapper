@@ -13,11 +13,13 @@ void MainFrame::createMenu() {
 	wxMenuBar* menu = new wxMenuBar();
 	wxMenu* fileMenu = new wxMenu();
 	auto mOpenButton = fileMenu->Append(wxID_ANY, "&Open Library");
+	auto mOpenTButton = fileMenu->Append(wxID_ANY, "&Open TargetFile");
 	auto mSaveButton = fileMenu->Append(wxID_SAVE);
 	menu->Append(fileMenu, "File");
 	SetMenuBar(menu);
 	//bind events
 	this->Bind(wxEVT_MENU, &MainFrame::onOpenLibraryFile, this, mOpenButton->GetId());
+	this->Bind(wxEVT_MENU, &MainFrame::onOpenTargetFile, this, mOpenTButton->GetId());
 }
 
 void MainFrame::createPanels() {
@@ -49,20 +51,20 @@ void MainFrame::createPanels() {
 //left Panel Items
 void MainFrame::createLPanelItems() {
 	//title
-	wxStaticText* title = new wxStaticText(leftpanel, wxID_ANY, "Effects Library");
+	ltitle = new wxStaticText(leftpanel, wxID_ANY, "Effects Library");
 	//list
 	leftListView = new wxListView(leftpanel);
 	leftListView->AppendColumn("Name");
 	leftListView->SetColumnWidth(0, 200);
-	//list bindings
-	
+	leftListView->AppendColumn("Size");
+	leftListView->SetColumnWidth(1, 150);
 	//buttons
-	wxButton* install = new wxButton(leftpanel, wxID_ANY, "Install");
+	wxButton* install = new wxButton(leftpanel, wxID_ANY, "Add");
 	//button bindings
-	
+	install->Bind(wxEVT_BUTTON, &MainFrame::onInstallClicked, this);
 	//set sizer
 	wxBoxSizer* lsizer = new wxBoxSizer(wxVERTICAL);
-	lsizer->Add(title, 1, wxEXPAND, 0);
+	lsizer->Add(ltitle, 1, wxEXPAND | wxLEFT, 5);
 	lsizer->Add(leftListView, 22, wxEXPAND | wxALL, 5);
 	lsizer->Add(install, 1, wxALIGN_CENTER, 0);
 	leftpanel->SetSizerAndFit(lsizer);
@@ -71,21 +73,26 @@ void MainFrame::createLPanelItems() {
 //right panel items
 void MainFrame::createRPanelItems() {
 	//title
-	wxStaticText* title = new wxStaticText(rightpanel, wxID_ANY, "Installed Effects");
+	rtitle = new wxStaticText(rightpanel, wxID_ANY, "Installed Effects");
 	//list
 	rightListView = new wxListView(rightpanel);
 	rightListView->AppendColumn("Name");
-	//list bindings
-
+	rightListView->SetColumnWidth(0, 200);
+	rightListView->AppendColumn("Size");
+	rightListView->SetColumnWidth(1, 150);
 	//buttons
-	wxButton* install = new wxButton(rightpanel, wxID_ANY, "Remove");
+	wxButton* remove = new wxButton(rightpanel, wxID_ANY, "Remove");
+	wxButton* save = new wxButton(rightpanel, wxID_ANY, "Save File");
 	//button bindings
-
+	remove->Bind(wxEVT_BUTTON, &MainFrame::onRemoveClicked, this);
 	//set sizer
 	wxBoxSizer* rsizer = new wxBoxSizer(wxVERTICAL);
-	rsizer->Add(title, 1, wxEXPAND, 0);
+	rsizer->Add(rtitle, 1, wxEXPAND | wxLEFT, 5);
 	rsizer->Add(rightListView, 22, wxEXPAND | wxALL, 5);
-	rsizer->Add(install, 1, wxALIGN_CENTER, 0);
+	wxBoxSizer* rButtonSizer = new wxBoxSizer(wxHORIZONTAL);
+	rButtonSizer->Add(remove, 1, wxALIGN_CENTER, 0);
+	rButtonSizer->Add(save, 1, wxALIGN_CENTER, 0);
+	rsizer->Add(rButtonSizer, 1, wxALIGN_CENTER, 0);
 	rightpanel->SetSizerAndFit(rsizer);
 }
 
@@ -98,19 +105,98 @@ void MainFrame::onOpenLibraryFile(wxCommandEvent& evt) {
 	}
 	//open file
 	if (true) {
-		fileManager = std::make_unique<FileManager>(std::string(fileDialog.GetPath().mb_str()));
+		originFileManager = std::make_unique<FileManager>(std::string(fileDialog.GetPath().mb_str()));
 	}
 	//read data
-	bool success = fileManager->openAndReadFile();	
+	bool success = originFileManager->openAndReadFile();	
 	if (!success) {
 		wxLogError("File contains unsupported Segments");
 		return;
 	}
 	//populate library
 	leftListView->DeleteAllItems();
-	for (const auto& effect : fileManager->getEffects()) {
-		auto id = leftListView->InsertItem(effect.second.id, effect.second.name);
-		
+	for (const auto& effect : originFileManager->getEffects()) {
+		insertEfxList(effect.second, leftListView, effect.second.id, effect.second.id);
 	}
+	//change title
+	ltitle->SetLabel("Effects Library: " + fileDialog.GetFilename());
+}
+
+void MainFrame::onOpenTargetFile(wxCommandEvent& evt) {
+	wxFileDialog fileDialog = new wxFileDialog(this, "Open Library File", "", "", "Efx Files (*.efx.*) | *.efx.*", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+	//if cancel
+	if (fileDialog.ShowModal() == wxID_CANCEL) {
+		return;
+	}
+	//open file
+	if (true) {
+		targetFileManager = std::make_unique<FileManager>(std::string(fileDialog.GetPath().mb_str()));
+	}
+	//read data
+	bool success = targetFileManager->openAndReadFile();
+	if (!success) {
+		wxLogError("File contains unsupported Segments");
+		return;
+	}
+	//populate library
+	rightListView->DeleteAllItems();
+	for (const auto& effect : targetFileManager->getEffects()) {
+		insertEfxList(effect.second, rightListView, effect.second.id, effect.second.id);
+	}
+	//change title
+	rtitle->SetLabel("Installed Effects: " + fileDialog.GetFilename());
+}
+
+void MainFrame::onInstallClicked(wxCommandEvent& evt) {
+	int selCount = leftListView->GetSelectedItemCount();
+	if (selCount <= 0) {
+		wxLogError("Please select an Item");
+		return;
+	}
+	if (!originFileManager || !targetFileManager) {
+		wxLogError("Please open both Files");
+		return;
+	}
+	//first item
+	auto data = leftListView->GetItemData(leftListView->GetFirstSelected());
+	auto efx = originFileManager->getEffects().at(static_cast<int>(data));
+	auto newindex = rightListView->GetItemCount();
+	//insert first item into targetlists
+	efx.id = 0;
+	while (targetFileManager->getEffects().contains(efx.id)) {
+		//change id/key until unique
+		efx.id++;
+	}
+	targetFileManager->getEffects().emplace(std::make_pair(efx.id, efx));
+	targetFileManager->getHeader().effectCount++;
+	insertEfxList(efx, rightListView, efx.id, newindex);
+}
+
+void MainFrame::onRemoveClicked(wxCommandEvent& evt) {
+	int selCount = rightListView->GetSelectedItemCount();
+	if (selCount <= 0) {
+		wxLogError("Please select an Item");
+		return;
+	}
+	if (!targetFileManager) {
+		wxLogError("Target File empty!");
+		return;
+	}
+	//first item
+	auto firstitem = rightListView->GetFirstSelected();
+	auto data = rightListView->GetItemData(firstitem);
+	rightListView->DeleteItem(rightListView->GetFirstSelected());
+	targetFileManager->getEffects().erase(static_cast<int>(data));
+	targetFileManager->getHeader().effectCount--;
+}
+
+void MainFrame::onSaveClicked(wxCommandEvent& evt) {
+
+}
+
+void MainFrame::insertEfxList(const Effect& effect, wxListView* listview, uint32_t data, uint32_t index) {
+	listview->InsertItem(index, effect.name);
+	listview->SetItem(index, 1, std::format("{:#x}", effect.size));
+	listview->SetItemData(index, data);
 }
 
