@@ -54,7 +54,7 @@ void MainFrame::createLPanelItems() {
 	//list bindings 
 	leftListView->Bind(wxEVT_LIST_ITEM_SELECTED, &MainFrame::onleftListSelected, this);
 	//buttons
-	wxButton* install = new wxButton(leftpanel, wxID_ANY, "Add");
+	wxButton* install = new wxButton(leftpanel, wxID_ANY, "Add Effect");
 	//button bindings
 	install->Bind(wxEVT_BUTTON, &MainFrame::onInstallClicked, this);
 	//set sizer
@@ -72,9 +72,9 @@ void MainFrame::createLPanelItems() {
 	bleftListView->AppendColumn("Size");
 	bleftListView->SetColumnWidth(1, 150);
 	//buttons
-	wxButton* binstall = new wxButton(leftpanel, wxID_ANY, "Add");
+	wxButton* binstall = new wxButton(leftpanel, wxID_ANY, "Add Segment");
 	//button bindings
-
+	binstall->Bind(wxEVT_BUTTON, &MainFrame::onInstallSegment, this);
 	//set sizer
 	sizer->Add(segTitle, 1, wxEXPAND | wxLEFT, 5);
 	sizer->Add(bleftListView, 22, wxEXPAND | wxALL, 5);
@@ -95,7 +95,7 @@ void MainFrame::createRPanelItems() {
 	//list bindings 
 	rightListView->Bind(wxEVT_LIST_ITEM_SELECTED, &MainFrame::onrightListSelected, this);
 	//buttons
-	wxButton* remove = new wxButton(rightpanel, wxID_ANY, "Remove");
+	wxButton* remove = new wxButton(rightpanel, wxID_ANY, "Remove Effect");
 	wxButton* save = new wxButton(rightpanel, wxID_ANY, "Save File");
 	//button bindings
 	remove->Bind(wxEVT_BUTTON, &MainFrame::onRemoveClicked, this);
@@ -118,9 +118,9 @@ void MainFrame::createRPanelItems() {
 	brightListView->AppendColumn("Size");
 	brightListView->SetColumnWidth(1, 150);
 	//buttons
-	wxButton* segRemove = new wxButton(rightpanel, wxID_ANY, "Remove");
+	wxButton* segRemove = new wxButton(rightpanel, wxID_ANY, "Remove Segment");
 	//button bindings
-	
+	segRemove->Bind(wxEVT_BUTTON, &MainFrame::onRemoveSegment, this);
 	//sizer
 	sizer->Add(segTitle, 1, wxEXPAND | wxLEFT, 5);
 	sizer->Add(brightListView, 22, wxEXPAND | wxALL, 5);
@@ -255,6 +255,51 @@ void MainFrame::onrightListSelected(wxListEvent& event) {
 	for (const auto& segPair : targetFileManager->getEffects().at(key).segments) {
 		insertSegmentList(segPair.second, brightListView, segPair.second.id, brightListView->GetItemCount());
 	}
+}
+
+void MainFrame::onInstallSegment(wxCommandEvent& evt) {
+	int selCount = bleftListView->GetSelectedItemCount();
+	int rselCount = rightListView->GetSelectedItemCount();
+	if (selCount <= 0 || rselCount <= 0) {
+		wxLogError("Please select both Items");
+		return;
+	}
+	if (!originFileManager || !targetFileManager) {
+		wxLogError("Please open both Files");
+		return;
+	}
+	//first item
+	auto keyefx = leftListView->GetItemData(leftListView->GetFirstSelected());
+	auto targetkeyefx = rightListView->GetItemData(rightListView->GetFirstSelected());
+	auto keyseg = bleftListView->GetItemData(bleftListView->GetFirstSelected());
+	auto segment = originFileManager->getEffects().at(keyefx).segments.at(keyseg);
+	auto newindex = brightListView->GetItemCount();
+	//insert first item into targetlists
+	segment.id = 0;
+	while (targetFileManager->getEffects().at(targetkeyefx).segments.contains(segment.id)) {
+		//change id/key until unique
+		segment.id++;
+	}
+	targetFileManager->getEffects().at(targetkeyefx).segments.emplace(std::make_pair(segment.id, segment));
+	insertSegmentList(segment, brightListView, segment.id, newindex);
+}
+
+void MainFrame::onRemoveSegment(wxCommandEvent& evt) {
+	int selCount = brightListView->GetSelectedItemCount();
+	int refxselCount = rightListView->GetSelectedItemCount();
+	if (selCount <= 0 ||refxselCount <= 0) {
+		wxLogError("Please select an Item");
+		return;
+	}
+	if (!targetFileManager) {
+		wxLogError("Target File empty!");
+		return;
+	}
+	//first item
+	auto efxkey = rightListView->GetItemData(rightListView->GetFirstSelected());
+	auto segkey = brightListView->GetItemData(brightListView->GetFirstSelected());
+	brightListView->DeleteItem(brightListView->GetFirstSelected());
+	targetFileManager->getEffects().at(efxkey).segments.erase(segkey);
 }
 
 void MainFrame::insertSegmentList(const Segment& segment, wxListView* listview, uint32_t data, uint32_t index) {

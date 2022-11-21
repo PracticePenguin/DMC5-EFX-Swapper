@@ -26,6 +26,8 @@ class MainFrame : public wxFrame{
 	void onInstallClicked(wxCommandEvent& evt);
 	void onRemoveClicked(wxCommandEvent& evt);
 	void onSaveClicked(wxCommandEvent& evt);
+	void onInstallSegment(wxCommandEvent& evt);
+	void onRemoveSegment(wxCommandEvent& evt);
 	void onleftListSelected(wxListEvent& event);
 	void onrightListSelected(wxListEvent& event);
 	//panel items

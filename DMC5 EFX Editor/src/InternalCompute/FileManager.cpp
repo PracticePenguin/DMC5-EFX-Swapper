@@ -42,6 +42,10 @@ bool readEFX(std::ifstream& filestream, FileManager& manager) {
 	auto fileStartAddr = filestream.tellg();
 	//read header
 	filestream.read(manager.getHeader().magic, 4);
+	//safeguard
+	if (std::strcmp(manager.getHeader().magic, "efxr") != 0) {
+		return false;
+	}
 	char ukn[5] = {};
 	filestream.read((char*)&manager.getHeader().ukn, 4);
 	filestream.read((char*)&manager.getHeader().effectCount, 4);
@@ -156,8 +160,13 @@ void FileManager::saveFile() {
 		}
 		//effects
 		for (const auto& effectpair : effects) {
+			std::streampos efxstartpos = filestream.tellp();
 			//array
 			filestream.write((char*)effectpair.second.dataBefSeg, 16);
+			//update segment count
+			filestream.seekp(efxstartpos + std::streampos(12));
+			uint32_t tmpsize = effectpair.second.segments.size();
+			filestream.write((char*)&tmpsize, 4);
 			//segments
 			for (const auto& segpair : effectpair.second.segments) {
 				for (auto schar : segpair.second.segData) {

@@ -6,7 +6,7 @@
 
 //structs
 struct EFX_Header {
-	char magic[4];
+	char magic[5] = {};
 	uint32_t ukn;
 	uint32_t effectCount;
 	uint32_t nameBufferSize;
