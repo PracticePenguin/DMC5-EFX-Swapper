@@ -81,12 +81,20 @@ bool readEFX(std::ifstream& filestream, FileManager& manager) {
 	}
 	//move beyond msk4
 	for (int i = 0; i < manager.getHeader().msk4Count; i++) {
+		//msk4mod
+		std::streampos msk4start = filestream.tellg();
+		filestream.seekg(msk4start + std::streampos(12));
+		uint32_t msk4mod{};
+		filestream.read((char*)&msk4mod, 4);
+		filestream.seekg(msk4start);
 		//skip 44 byte
 		filestream.seekg(filestream.tellg() + std::streampos(44));
-		uint32_t pathsize{ 0 };
-		filestream.read((char*)&pathsize, 4);
-		//skip to end if linked efx
-		filestream.seekg(filestream.tellg() + std::streampos(pathsize * 2));
+		if (msk4mod != 0x6f) {
+			uint32_t pathsize{ 0 };
+			filestream.read((char*)&pathsize, 4);
+			//skip to end if linked efx
+			filestream.seekg(filestream.tellg() + std::streampos(pathsize * 2));
+		}
 	}
 	//effects section
 	std::streampos effectsStartAddr = filestream.tellg();
