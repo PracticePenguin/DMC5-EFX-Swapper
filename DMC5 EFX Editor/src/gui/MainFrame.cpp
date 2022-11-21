@@ -14,7 +14,6 @@ void MainFrame::createMenu() {
 	wxMenu* fileMenu = new wxMenu();
 	auto mOpenButton = fileMenu->Append(wxID_ANY, "&Open Library");
 	auto mOpenTButton = fileMenu->Append(wxID_ANY, "&Open TargetFile");
-	auto mSaveButton = fileMenu->Append(wxID_SAVE);
 	menu->Append(fileMenu, "File");
 	SetMenuBar(menu);
 	//bind events
