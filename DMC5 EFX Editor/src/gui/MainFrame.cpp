@@ -26,26 +26,19 @@ void MainFrame::createPanels() {
 	//panel
 	wxPanel* leftpanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(100, 200));
 	wxPanel* rightpanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(100, 200));
-	wxPanel* bottompanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(100, 200));
 	//color debug only
-	//rightpanel->SetBackgroundColour(wxColor(100, 100, 200));
-	bottompanel->SetBackgroundColour(wxColor(100, 200, 200));
-	//leftpanel->SetBackgroundColour(wxColor(200, 100, 200));
+	//leftpanel->SetBackgroundColour(wxColor(100, 100, 200));
+	//rightpanel->SetBackgroundColour(wxColor(200, 100, 200));
 	//make panel global
 	this->rightpanel = rightpanel;
-	this->bottompanel = bottompanel;
 	this->leftpanel = leftpanel;
 	//sizer
-	wxBoxSizer* tbsizer = new wxBoxSizer(wxVERTICAL);
-	wxBoxSizer* tsizer = new wxBoxSizer(wxHORIZONTAL);
-	//top bottom sizer
-	tbsizer->Add(tsizer, 1, wxEXPAND, 3);
-	tbsizer->Add(bottompanel, 1, wxEXPAND | wxALL, 3);
-	//top l/r sizer
-	tsizer->Add(leftpanel, 1, wxEXPAND, 3);
-	tsizer->Add(rightpanel, 1, wxEXPAND | wxLEFT, 3);
+	wxBoxSizer* lrsizer = new wxBoxSizer(wxHORIZONTAL);
+	//l/r sizer
+	lrsizer->Add(leftpanel, 1, wxEXPAND, 3);
+	lrsizer->Add(rightpanel, 1, wxEXPAND | wxLEFT, 3);
 	//append to main window
-	SetSizerAndFit(tbsizer);
+	SetSizerAndFit(lrsizer);
 }
 
 //left Panel Items
@@ -53,21 +46,40 @@ void MainFrame::createLPanelItems() {
 	//title
 	ltitle = new wxStaticText(leftpanel, wxID_ANY, "Effects Library");
 	//list
-	leftListView = new wxListView(leftpanel);
+	leftListView = new wxListView(leftpanel, wxID_ANY);
 	leftListView->AppendColumn("Name");
 	leftListView->SetColumnWidth(0, 200);
 	leftListView->AppendColumn("Size");
 	leftListView->SetColumnWidth(1, 150);
+	//list bindings 
+	leftListView->Bind(wxEVT_LIST_ITEM_SELECTED, &MainFrame::onleftListSelected, this);
 	//buttons
 	wxButton* install = new wxButton(leftpanel, wxID_ANY, "Add");
 	//button bindings
 	install->Bind(wxEVT_BUTTON, &MainFrame::onInstallClicked, this);
 	//set sizer
-	wxBoxSizer* lsizer = new wxBoxSizer(wxVERTICAL);
-	lsizer->Add(ltitle, 1, wxEXPAND | wxLEFT, 5);
-	lsizer->Add(leftListView, 22, wxEXPAND | wxALL, 5);
-	lsizer->Add(install, 1, wxALIGN_CENTER, 0);
-	leftpanel->SetSizerAndFit(lsizer);
+	wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+	sizer->Add(ltitle, 1, wxEXPAND | wxLEFT, 5);
+	sizer->Add(leftListView, 22, wxEXPAND | wxALL, 5);
+	sizer->Add(install, 1, wxALIGN_CENTER, 0);
+	//Segment section
+	//title
+	wxStaticText* segTitle = new wxStaticText(leftpanel, wxID_ANY, "Library Segments");
+	//list
+	bleftListView = new wxListView(leftpanel, wxID_ANY);
+	bleftListView->AppendColumn("Name");
+	bleftListView->SetColumnWidth(0, 200);
+	bleftListView->AppendColumn("Size");
+	bleftListView->SetColumnWidth(1, 150);
+	//buttons
+	wxButton* binstall = new wxButton(leftpanel, wxID_ANY, "Add");
+	//button bindings
+
+	//set sizer
+	sizer->Add(segTitle, 1, wxEXPAND | wxLEFT, 5);
+	sizer->Add(bleftListView, 22, wxEXPAND | wxALL, 5);
+	sizer->Add(binstall, 1, wxALIGN_CENTER, 0);
+	leftpanel->SetSizerAndFit(sizer);
 }
 
 //right panel items
@@ -80,6 +92,8 @@ void MainFrame::createRPanelItems() {
 	rightListView->SetColumnWidth(0, 200);
 	rightListView->AppendColumn("Size");
 	rightListView->SetColumnWidth(1, 150);
+	//list bindings 
+	rightListView->Bind(wxEVT_LIST_ITEM_SELECTED, &MainFrame::onrightListSelected, this);
 	//buttons
 	wxButton* remove = new wxButton(rightpanel, wxID_ANY, "Remove");
 	wxButton* save = new wxButton(rightpanel, wxID_ANY, "Save File");
@@ -87,19 +101,37 @@ void MainFrame::createRPanelItems() {
 	remove->Bind(wxEVT_BUTTON, &MainFrame::onRemoveClicked, this);
 	save->Bind(wxEVT_BUTTON, &MainFrame::onSaveClicked, this);
 	//set sizer
-	wxBoxSizer* rsizer = new wxBoxSizer(wxVERTICAL);
-	rsizer->Add(rtitle, 1, wxEXPAND | wxLEFT, 5);
-	rsizer->Add(rightListView, 22, wxEXPAND | wxALL, 5);
+	wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+	sizer->Add(rtitle, 1, wxEXPAND | wxLEFT, 5);
+	sizer->Add(rightListView, 22, wxEXPAND | wxALL, 5);
 	wxBoxSizer* rButtonSizer = new wxBoxSizer(wxHORIZONTAL);
 	rButtonSizer->Add(remove, 1, wxALIGN_CENTER, 0);
 	rButtonSizer->Add(save, 1, wxALIGN_CENTER, 0);
-	rsizer->Add(rButtonSizer, 1, wxALIGN_CENTER, 0);
-	rightpanel->SetSizerAndFit(rsizer);
+	sizer->Add(rButtonSizer, 1, wxALIGN_CENTER, 0);
+	//segments
+	//title
+	wxStaticText* segTitle = new wxStaticText(rightpanel, wxID_ANY, "Target Segments");
+	//list
+	brightListView = new wxListView(rightpanel);
+	brightListView->AppendColumn("Name");
+	brightListView->SetColumnWidth(0, 200);
+	brightListView->AppendColumn("Size");
+	brightListView->SetColumnWidth(1, 150);
+	//buttons
+	wxButton* segRemove = new wxButton(rightpanel, wxID_ANY, "Remove");
+	//button bindings
+	
+	//sizer
+	sizer->Add(segTitle, 1, wxEXPAND | wxLEFT, 5);
+	sizer->Add(brightListView, 22, wxEXPAND | wxALL, 5);
+	sizer->Add(segRemove, 1, wxALIGN_CENTER, 0);
+	rightpanel->SetSizerAndFit(sizer);
 }
 
 //open library file
 void MainFrame::onOpenLibraryFile(wxCommandEvent& evt) {
-	wxFileDialog fileDialog = new wxFileDialog(this, "Open Library File", "", "", "Efx Files (*.efx.*) | *.efx.*", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+	wxFileDialog fileDialog = new wxFileDialog(this, "Open Library File", "", "", "", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+	fileDialog.SetWildcard("EFX files (*.efx.*)|*.efx.*");
 	//if cancel
 	if (fileDialog.ShowModal() == wxID_CANCEL) {
 		return;
@@ -124,7 +156,8 @@ void MainFrame::onOpenLibraryFile(wxCommandEvent& evt) {
 }
 
 void MainFrame::onOpenTargetFile(wxCommandEvent& evt) {
-	wxFileDialog fileDialog = new wxFileDialog(this, "Open Library File", "", "", "Efx Files (*.efx.*) | *.efx.*", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+	wxFileDialog fileDialog = new wxFileDialog(this, "Open Library File", "", "", "", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+	fileDialog.SetWildcard("EFX files (*.efx.*)|*.efx.*");
 	//if cancel
 	if (fileDialog.ShowModal() == wxID_CANCEL) {
 		return;
@@ -203,6 +236,30 @@ void MainFrame::onSaveClicked(wxCommandEvent& evt) {
 void MainFrame::insertEfxList(const Effect& effect, wxListView* listview, uint32_t data, uint32_t index) {
 	listview->InsertItem(index, effect.name);
 	listview->SetItem(index, 1, std::format("{:#x}", effect.size));
+	listview->SetItemData(index, data);
+}
+
+void MainFrame::onleftListSelected(wxListEvent& event){
+	bleftListView->DeleteAllItems();
+	auto key = event.GetData();
+	//populate segments
+	for (const auto& segPair : originFileManager->getEffects().at(key).segments) {
+		insertSegmentList(segPair.second, bleftListView, segPair.second.id, bleftListView->GetItemCount());
+	}
+}
+
+void MainFrame::onrightListSelected(wxListEvent& event) {
+	brightListView->DeleteAllItems();
+	auto key = event.GetData();
+	//populate segments
+	for (const auto& segPair : targetFileManager->getEffects().at(key).segments) {
+		insertSegmentList(segPair.second, brightListView, segPair.second.id, brightListView->GetItemCount());
+	}
+}
+
+void MainFrame::insertSegmentList(const Segment& segment, wxListView* listview, uint32_t data, uint32_t index) {
+	listview->InsertItem(index, segment.segName);
+	listview->SetItem(index, 1, std::format("{:#x}", segment.size));
 	listview->SetItemData(index, data);
 }
 

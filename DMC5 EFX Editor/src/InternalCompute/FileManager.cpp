@@ -25,9 +25,12 @@ bool FileManager::openAndReadFile() {
 			return false;
 		}
 		//read remaining data
-		while (filestream.peek() && !filestream.eof()) {
+		while (true) {
 			unsigned char tmpdata{ 0 };
 			filestream.read((char*)&tmpdata, 1);
+			if (filestream.eof()) {
+				break;
+			}
 			aftEfxData.emplace_back(tmpdata);
 		}
 	}

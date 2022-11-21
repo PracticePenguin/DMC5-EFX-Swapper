@@ -6,12 +6,12 @@
 
 class MainFrame : public wxFrame{
 	//Attr
-	wxPanel* rightpanel;
 	wxPanel* leftpanel;
-	wxPanel* bottompanel;
+	wxPanel* rightpanel;
 	wxListView* leftListView;
 	wxListView* rightListView;
-	wxListView* bottomListView;
+	wxListView* bleftListView;
+	wxListView* brightListView;
 	wxStaticText* rtitle;
 	wxStaticText* ltitle;
 	std::unique_ptr<FileManager> originFileManager{};
@@ -26,11 +26,14 @@ class MainFrame : public wxFrame{
 	void onInstallClicked(wxCommandEvent& evt);
 	void onRemoveClicked(wxCommandEvent& evt);
 	void onSaveClicked(wxCommandEvent& evt);
+	void onleftListSelected(wxListEvent& event);
+	void onrightListSelected(wxListEvent& event);
 	//panel items
 	void createLPanelItems();
 	void createRPanelItems();
 	//helper
 	void insertEfxList(const Effect& effect, wxListView* listview, uint32_t data, uint32_t id);
+	void insertSegmentList(const Segment& segment, wxListView* listview, uint32_t data, uint32_t id);
 public:
 	//constructor
 	MainFrame(const wxString& title);
