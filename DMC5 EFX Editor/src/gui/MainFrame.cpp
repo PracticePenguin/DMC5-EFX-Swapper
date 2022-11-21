@@ -257,9 +257,10 @@ void MainFrame::onrightListSelected(wxListEvent& event) {
 }
 
 void MainFrame::onInstallSegment(wxCommandEvent& evt) {
+	int origselCount = leftListView->GetSelectedItemCount();
 	int selCount = bleftListView->GetSelectedItemCount();
 	int rselCount = rightListView->GetSelectedItemCount();
-	if (selCount <= 0 || rselCount <= 0) {
+	if (selCount <= 0 || rselCount <= 0 || origselCount <= 0) {
 		wxLogError("Please select both Items");
 		return;
 	}
