@@ -1,7 +1,7 @@
 # DMC5-EFX-Swapper
 ## Important note
 I made this by looking at Darkness' efx.bt source code. Therefore it is likely that I missed/misinterpreted something. If you encounter any bugs please let me know on which efx file it occured.<br />
-If the program says something like "File contains unsupported Segments", it either means that the file is corrupted, that it's not an efx file or that there is an error in the program. <br />
+If the program says something like "File contains unsupported Segments", it either means that the file is corrupted or that it's not an efx file. <br />
 I have not tested the program on other platforms except x64 windows.
 
 ## What this program does and how to use
